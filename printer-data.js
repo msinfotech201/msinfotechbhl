@@ -62,7 +62,7 @@ const printerStock = [
     connectivity: "USB",
     condition: "Working Condition",
     price: "",
-    status: "Sold",
+    status: "AVAILABLE",
     image: "assets/printers/epson-lq-310.jpg",
     demo: true // DEMO / SAMPLE printer — remove this line once you replace it with real stock
   }
