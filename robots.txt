@@ -3,4 +3,4 @@ Allow: /
 Disallow: /add-laptop.html
 Disallow: /add-printer.html
 
-Sitemap: https://meinfotechbhl.com/sitemap.xml
+Sitemap: https://msinfotechbhl.com/sitemap.xml

@@ -1,6 +1,6 @@
 # MS INFOTECH — Website (Bhilwara)
 
-Production-ready. Pure HTML5 / CSS3 / Vanilla JavaScript — no PHP, no database, no build step. Works directly on **GitHub Pages** with the custom domain `meinfotechbhl.com`.
+Production-ready. Pure HTML5 / CSS3 / Vanilla JavaScript — no PHP, no database, no build step. Works directly on **GitHub Pages** with the custom domain `msinfotechbhl.com`.
 
 ---
 
@@ -73,7 +73,7 @@ ms-infotech-site/
 ## C. Files you need to replace / edit yourself
 
 1. **`assets/laptops/`** and **`assets/printers/`** — currently empty. Add real photos of the laptops/printers you have in stock.
-2. **Easiest way to add stock:** open `add-laptop.html` (for laptops) or `add-printer.html` (for printers) in your browser (works even by double-clicking the file, or once the site is live at `meinfotechbhl.com/add-laptop.html` / `meinfotechbhl.com/add-printer.html`). Fill in the form, see a live preview, click **Generate Code**, copy it, and paste into `laptop-data.js` / `printer-data.js`. These pages are hidden from Google and not in the menu — they're just for you.
+2. **Easiest way to add stock:** open `add-laptop.html` (for laptops) or `add-printer.html` (for printers) in your browser (works even by double-clicking the file, or once the site is live at `msinfotechbhl.com/add-laptop.html` / `msinfotechbhl.com/add-printer.html`). Fill in the form, see a live preview, click **Generate Code**, copy it, and paste into `laptop-data.js` / `printer-data.js`. These pages are hidden from Google and not in the menu — they're just for you.
 3. **`laptop-data.js`** / **`printer-data.js`** (manual editing, if you prefer not to use the tools above) — these are the ONE file each for old-laptop / old-printer stock (marked `ADD NEW LAPTOP HERE` / `ADD NEW PRINTER HERE`). Replace the 3 DEMO items in each with your real stock (brand, model, specs, price, status, photo path). Do not edit `script.js` for this — it only holds site behaviour, not the stock lists.
 4. **To remove an item once it's sold** (so it disappears from the site completely), delete its whole `{ ... }` block from `laptop-data.js` / `printer-data.js`. If you'd rather keep it visible for a while as "Sold Out", just change its `status` to `"SOLD"` instead of deleting it.
 5. **Nothing else needs editing** — logo, address, phone, hours and domain are already final throughout the site.
@@ -99,17 +99,17 @@ ms-infotech-site/
 5. Branch = `main`, folder = **`/ (root)`** → **Save**.
 6. GitHub will show a live URL like `https://<your-username>.github.io/<repo-name>/` within a minute or two — confirm the site loads there first.
 
-## E. Exact custom-domain setup for meinfotechbhl.com
+## E. Exact custom-domain setup for msinfotechbhl.com
 
 1. Still in **Settings → Pages**, scroll to **Custom domain**.
-2. Type `meinfotechbhl.com` → **Save**. (The `CNAME` file in your repo already contains this, so GitHub also picks it up automatically from the file itself — either way works, this just confirms it in the UI.)
+2. Type `msinfotechbhl.com` → **Save**. (The `CNAME` file in your repo already contains this, so GitHub also picks it up automatically from the file itself — either way works, this just confirms it in the UI.)
 3. GitHub will show "DNS check unsuccessful" until you add the DNS records below — that's expected at this stage.
 
 ## F. DNS records required
 
-At your domain registrar (GoDaddy, Hostinger, BigRock, etc. — wherever `meinfotechbhl.com` is registered), open DNS management and add:
+At your domain registrar (GoDaddy, Hostinger, BigRock, etc. — wherever `msinfotechbhl.com` is registered), open DNS management and add:
 
-**For the root domain (`meinfotechbhl.com`) — add 4 A records:**
+**For the root domain (`msinfotechbhl.com`) — add 4 A records:**
 | Type | Host/Name | Value |
 |---|---|---|
 | A | @ | 185.199.108.153 |
@@ -117,7 +117,7 @@ At your domain registrar (GoDaddy, Hostinger, BigRock, etc. — wherever `meinfo
 | A | @ | 185.199.110.153 |
 | A | @ | 185.199.111.153 |
 
-**For `www.meinfotechbhl.com` (recommended, so both work) — add 1 CNAME record:**
+**For `www.msinfotechbhl.com` (recommended, so both work) — add 1 CNAME record:**
 | Type | Host/Name | Value |
 |---|---|---|
 | CNAME | www | `<your-username>.github.io` |
@@ -127,9 +127,9 @@ Remove/replace any existing conflicting A or CNAME records on the same host firs
 ## G. HTTPS setup instructions
 
 1. Once DNS propagates and GitHub's "DNS check" passes (refresh **Settings → Pages** to confirm), a checkbox called **"Enforce HTTPS"** becomes available.
-2. Tick **Enforce HTTPS**. GitHub automatically issues and renews a free SSL certificate for `meinfotechbhl.com` — no extra steps, no cost, nothing to buy.
+2. Tick **Enforce HTTPS**. GitHub automatically issues and renews a free SSL certificate for `msinfotechbhl.com` — no extra steps, no cost, nothing to buy.
 3. If the checkbox is greyed out, wait — it usually activates within a few hours of the DNS check passing. No action needed beyond waiting and re-checking.
-4. Once enabled, `http://meinfotechbhl.com` automatically redirects to `https://meinfotechbhl.com`.
+4. Once enabled, `http://msinfotechbhl.com` automatically redirects to `https://msinfotechbhl.com`.
 
 ---
 
@@ -137,7 +137,7 @@ Remove/replace any existing conflicting A or CNAME records on the same host firs
 
 Run through this after the domain goes live:
 
-- [ ] `https://meinfotechbhl.com/` loads (Home)
+- [ ] `https://msinfotechbhl.com/` loads (Home)
 - [ ] All 11 nav destinations load with no 404s: About, Services, Laptop Repair, Desktop Repair, CCTV, Networking, Data Recovery, Old Laptop Stock, Old Printer Stock, Contact
 - [ ] Mobile menu (hamburger icon) opens/closes correctly on a phone-width screen
 - [ ] "Services" dropdown opens on hover (desktop) and tap (mobile)
@@ -152,7 +152,7 @@ Run through this after the domain goes live:
 - [ ] Browser tab shows the MS INFOTECH favicon
 - [ ] No horizontal scrolling on a mobile-width screen on any page
 - [ ] Padlock/HTTPS shows in the browser address bar (after Section G is complete)
-- [ ] `https://meinfotechbhl.com/sitemap.xml` and `https://meinfotechbhl.com/robots.txt` both load correctly
+- [ ] `https://msinfotechbhl.com/sitemap.xml` and `https://msinfotechbhl.com/robots.txt` both load correctly
 
 ---
 
