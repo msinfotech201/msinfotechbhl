@@ -68,5 +68,20 @@ const laptopStock = [
     status: "AVAILABLE",
     image: "assets/laptops/lenovo-thinkpad-e480.jpg",
     demo: true // DEMO / SAMPLE laptop — remove this line once you replace it with real stock
-  }
+  },
+  {
+    id: NEXT_ID, // <-- next number after your last laptop id
+    brand: "Lenovo",
+    model: "Ideapad S145",
+    processor: "i3 10th Gen",
+    ram: "4GB DDR4",
+    storage: "125 gb SSD",
+    display: "15.6 inch HD (1366 x 768) or Full HD (1920 x 1080)",
+    graphics: "-",
+    os: "Windows 10",
+    condition: "Very Good",
+    price: "",
+    status: "AVAILABLE",
+    image: "assets/laptops/Lenovo Ideapad S145.jpg"
+  },
 ];
