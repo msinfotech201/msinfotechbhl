@@ -49,7 +49,7 @@ const laptopStock = [
     os: "Windows 10",
     condition: "Very Good",
     price: "",
-    status: "RESERVED",
+    status: "AVAILABLE",
     image: "assets/laptops/hp-probook-440.jpg",
     demo: true // DEMO / SAMPLE laptop — remove this line once you replace it with real stock
   },
@@ -65,7 +65,7 @@ const laptopStock = [
     os: "Windows 11",
     condition: "Excellent",
     price: "",
-    status: "SOLD",
+    status: "AVAILABLE",
     image: "assets/laptops/lenovo-thinkpad-e480.jpg",
     demo: true // DEMO / SAMPLE laptop — remove this line once you replace it with real stock
   }
