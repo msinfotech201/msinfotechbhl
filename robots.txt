@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /add-laptop.html
+Disallow: /add-printer.html
+
+Sitemap: https://meinfotechbhl.com/sitemap.xml
