@@ -32,7 +32,7 @@ const laptopStock = [
     graphics: "Intel Graphics",
     os: "Windows 11",
     condition: "Good",
-    price: "₹24,999",
+    price: "",
     status: "AVAILABLE",
     image: "assets/laptops/dell-latitude-5490.jpg",
     demo: true // DEMO / SAMPLE laptop — remove this line once you replace it with real stock
@@ -48,7 +48,7 @@ const laptopStock = [
     graphics: "Intel Graphics",
     os: "Windows 10",
     condition: "Very Good",
-    price: "₹18,500",
+    price: "",
     status: "RESERVED",
     image: "assets/laptops/hp-probook-440.jpg",
     demo: true // DEMO / SAMPLE laptop — remove this line once you replace it with real stock
