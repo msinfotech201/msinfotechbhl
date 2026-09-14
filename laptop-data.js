@@ -70,7 +70,7 @@ const laptopStock = [
     demo: true // DEMO / SAMPLE laptop — remove this line once you replace it with real stock
   },
   {
-    id: NEXT_ID, // <-- next number after your last laptop id
+    id: 4,
     brand: "Lenovo",
     model: "Ideapad S145",
     processor: "i3 10th Gen",
