@@ -15,10 +15,11 @@
    ========================================================= */
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyCiAIjnkx_aLNo0mQmBBv9bAepUh-hEW3M",
+  authDomain: "msinfotech-f0035.firebaseapp.com",
+  projectId: "msinfotech-f0035",
+  storageBucket: "msinfotech-f0035.firebasestorage.app",
+  messagingSenderId: "221056338754",
+  appId: "1:221056338754:web:ec176d199af1a8bac896db",
+  measurementId: "G-85ND1N2WK0"
 };
