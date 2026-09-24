@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admins are keyed by their (lowercase) Gmail address, not UID —
+    // this lets an admin pre-authorize someone's Google account
+    // before that person has ever signed in.
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+    function adminDoc() {
+      return get(/databases/$(database)/documents/admins/$(myEmail()));
+    }
+    // Signed in AND has a document in "admins" (staff or admin role)
+    function isStaffOrAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(myEmail()));
+    }
+    // Signed in AND role == "admin" specifically (can manage users)
+    function isAdmin() {
+      return isStaffOrAdmin() && adminDoc().data.role == 'admin';
+    }
+
+    // Old Laptop Stock — public can view (site catalogue),
+    // only logged-in staff/admin can add/edit/delete.
+    match /laptops/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isStaffOrAdmin();
+    }
+
+    // Old Printer Stock — same rule as laptops.
+    match /printers/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isStaffOrAdmin();
+    }
+
+    // Website enquiries — anyone can SUBMIT (contact form),
+    // but only staff/admin can read the list, update status, or delete.
+    // This keeps customer contact details private from the public.
+    match /enquiries/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isStaffOrAdmin();
+    }
+
+    // Admin/staff accounts (doc ID = lowercase Gmail address) — a
+    // user can read their own record (needed at login to check
+    // their access); only an "admin" role user can read the full
+    // list, or add/edit/remove users.
+    match /admins/{emailId} {
+      allow read: if isSignedIn() && (myEmail() == emailId || isAdmin());
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Everything else stays locked by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | MS INFOTECH</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="../assets/favicon-48.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-topbar">
+  <span class="brand-text">MS INFOTECH Admin</span>
+  <span>
+    <span class="who" id="who-label">...</span>
+    <button class="admin-btn ghost small" id="logout-btn" style="margin-left:14px;">Logout</button>
+  </span>
+</div>
+
+<div class="admin-shell">
+  <nav class="admin-tabs">
+    <button data-tab="laptops" class="is-active">Laptops</button>
+    <button data-tab="printers">Printers</button>
+    <button data-tab="enquiries">Enquiries</button>
+    <button data-tab="users" id="users-tab-btn" style="display:none;">Users</button>
+  </nav>
+
+  <main class="admin-main">
+
+    <!-- LAPTOPS -->
+    <section id="tab-laptops" class="admin-tab-panel">
+      <h2>Old Laptop Stock</h2>
+      <p class="hint">Yahan se add/edit/delete karte hi website par turant reflect hoga.</p>
+      <div class="admin-toolbar">
+        <span id="laptop-count"></span>
+        <button class="admin-btn small" id="add-laptop-btn">+ Add Laptop</button>
+      </div>
+      <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead><tr><th>Brand/Model</th><th>Specs</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="laptop-rows"><tr><td colspan="5">Loading...</td></tr></tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- PRINTERS -->
+    <section id="tab-printers" class="admin-tab-panel" style="display:none;">
+      <h2>Old Printer Stock</h2>
+      <p class="hint">Yahan se add/edit/delete karte hi website par turant reflect hoga.</p>
+      <div class="admin-toolbar">
+        <span id="printer-count"></span>
+        <button class="admin-btn small" id="add-printer-btn">+ Add Printer</button>
+      </div>
+      <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead><tr><th>Brand/Model</th><th>Specs</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="printer-rows"><tr><td colspan="5">Loading...</td></tr></tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- ENQUIRIES -->
+    <section id="tab-enquiries" class="admin-tab-panel" style="display:none;">
+      <h2>Website Enquiries</h2>
+      <p class="hint">Contact form se aayi sabhi enquiries yahan dikhti hain.</p>
+      <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead><tr><th>Name / Mobile</th><th>Service</th><th>Message</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="enquiry-rows"><tr><td colspan="6">Loading...</td></tr></tbody>
+      </table>
+      </div>
+    </section>
+
+    <!-- USERS -->
+    <section id="tab-users" class="admin-tab-panel" style="display:none;">
+      <h2>Admin Users</h2>
+      <p class="hint">Naye admin/staff users add karein aur unka role set karein. (Sirf "admin" role isko dekh/use kar sakta hai.)</p>
+      <div class="admin-toolbar">
+        <span></span>
+        <button class="admin-btn small" id="add-user-btn">+ Add User</button>
+      </div>
+      <div style="overflow-x:auto;">
+      <table class="admin-table">
+        <thead><tr><th>Email</th><th>Role</th><th>Added</th><th>Actions</th></tr></thead>
+        <tbody id="user-rows"><tr><td colspan="4">Loading...</td></tr></tbody>
+      </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Laptop add/edit modal -->
+<div class="admin-modal-overlay" id="laptop-modal-overlay">
+  <div class="admin-modal">
+    <h3 id="laptop-modal-title">Add Laptop</h3>
+    <form id="laptop-form">
+      <div class="admin-form-grid">
+        <div class="admin-field"><label>Brand</label><input name="brand" required></div>
+        <div class="admin-field"><label>Model</label><input name="model" required></div>
+        <div class="admin-field"><label>Processor</label><input name="processor" required></div>
+        <div class="admin-field"><label>RAM</label><input name="ram" required></div>
+        <div class="admin-field"><label>Storage</label><input name="storage" required></div>
+        <div class="admin-field"><label>Display</label><input name="display" required></div>
+        <div class="admin-field"><label>Graphics</label><input name="graphics" required></div>
+        <div class="admin-field"><label>OS</label><input name="os" required></div>
+        <div class="admin-field"><label>Condition</label><input name="condition" required></div>
+        <div class="admin-field"><label>Price (blank = Contact for Price)</label><input name="price" placeholder="₹24,999"></div>
+        <div class="admin-field">
+          <label>Status</label>
+          <select name="status"><option>AVAILABLE</option><option>RESERVED</option><option>SOLD</option></select>
+        </div>
+        <div class="admin-field full">
+          <label>Photo path (put the photo in assets/laptops/ and type its path here)</label>
+          <input name="image" placeholder="assets/laptops/dell-latitude-5490.jpg" required>
+        </div>
+      </div>
+      <div class="admin-modal-actions">
+        <button type="button" class="admin-btn ghost" data-close-modal="laptop-modal-overlay">Cancel</button>
+        <button type="submit" class="admin-btn" id="laptop-save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Printer add/edit modal -->
+<div class="admin-modal-overlay" id="printer-modal-overlay">
+  <div class="admin-modal">
+    <h3 id="printer-modal-title">Add Printer</h3>
+    <form id="printer-form">
+      <div class="admin-form-grid">
+        <div class="admin-field"><label>Brand</label><input name="brand" required></div>
+        <div class="admin-field"><label>Model</label><input name="model" required></div>
+        <div class="admin-field"><label>Type</label><input name="type" placeholder="Laser / Inkjet" required></div>
+        <div class="admin-field"><label>Function</label><input name="function" placeholder="Print + Scan + Copy" required></div>
+        <div class="admin-field"><label>Connectivity</label><input name="connectivity" placeholder="USB + WiFi" required></div>
+        <div class="admin-field"><label>Condition</label><input name="condition" required></div>
+        <div class="admin-field"><label>Price (blank = Contact for Price)</label><input name="price" placeholder="₹3,499"></div>
+        <div class="admin-field">
+          <label>Status</label>
+          <select name="status"><option>AVAILABLE</option><option>RESERVED</option><option>SOLD</option></select>
+        </div>
+        <div class="admin-field full">
+          <label>Photo path (put the photo in assets/printers/ and type its path here)</label>
+          <input name="image" placeholder="assets/printers/hp-laserjet-m126nw.jpg" required>
+        </div>
+      </div>
+      <div class="admin-modal-actions">
+        <button type="button" class="admin-btn ghost" data-close-modal="printer-modal-overlay">Cancel</button>
+        <button type="submit" class="admin-btn" id="printer-save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Add user modal -->
+<div class="admin-modal-overlay" id="user-modal-overlay">
+  <div class="admin-modal">
+    <h3>Add Admin User</h3>
+    <p class="hint">Unka Gmail address daalein — wo "Sign in with Google" par isi account se login kar payenge, koi password banane ki zaroorat nahi.</p>
+    <form id="user-form">
+      <div class="admin-field"><label>Gmail Address</label><input name="email" type="email" required placeholder="name@gmail.com"></div>
+      <div class="admin-field">
+        <label>Role</label>
+        <select name="role">
+          <option value="staff">Staff (stock + enquiries manage kar sakta hai)</option>
+          <option value="admin">Admin (users bhi manage kar sakta hai)</option>
+        </select>
+      </div>
+      <p id="user-form-msg" class="admin-msg"></p>
+      <div class="admin-modal-actions">
+        <button type="button" class="admin-btn ghost" data-close-modal="user-modal-overlay">Cancel</button>
+        <button type="submit" class="admin-btn" id="user-save-btn">Add User</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<script src="../firebase-init.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

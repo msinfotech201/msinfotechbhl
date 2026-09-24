@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login | MS INFOTECH</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="../assets/favicon-48.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+
+<div class="admin-login-wrap">
+  <div class="admin-login-card">
+    <h1>MS INFOTECH Admin</h1>
+    <p class="sub">Sirf authorized staff/admin ke liye. Apne Google account se login karein.</p>
+
+    <button type="button" class="admin-btn google-btn" id="google-login-btn">
+      <svg width="18" height="18" viewBox="0 0 48 48" style="vertical-align:-4px; margin-right:8px;">
+        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.4-.1-2.4-.4-3.5z"/>
+        <path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l6-6C34.6 5.1 29.6 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/>
+        <path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.3-5.1l-6.6-5.4C29.6 36.2 26.9 37 24 37c-5.3 0-9.6-3.3-11.3-8l-6.6 5.1C9.5 40.6 16.2 45 24 45z"/>
+        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.7l6.6 5.4C41.7 35.9 45 30.5 45 24c0-1.4-.1-2.4-.4-3.5z"/>
+      </svg>
+      Sign in with Google
+    </button>
+
+    <p id="login-msg" class="admin-msg"></p>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<script src="../firebase-init.js"></script>
+<script>
+var msg = document.querySelector("#login-msg");
+var btn = document.querySelector("#google-login-btn");
+
+// If already logged in AND authorized, skip straight to the panel.
+auth.onAuthStateChanged(function (user) {
+  if (!user) return;
+  db.collection("admins").doc((user.email || "").toLowerCase()).get().then(function (doc) {
+    if (doc.exists) window.location.href = "panel.html";
+  });
+});
+
+btn.addEventListener("click", function () {
+  msg.className = "admin-msg";
+  msg.textContent = "";
+  btn.disabled = true;
+
+  var provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider)
+    .then(function (result) {
+      var email = (result.user.email || "").toLowerCase();
+      return db.collection("admins").doc(email).get();
+    })
+    .then(function (doc) {
+      if (doc.exists) {
+        window.location.href = "panel.html";
+      } else {
+        msg.className = "admin-msg error";
+        msg.textContent = "Is Google account ko admin panel ka access nahi hai. Kisi existing admin se apna Gmail add karwayein.";
+        return auth.signOut();
+      }
+    })
+    .catch(function (err) {
+      msg.className = "admin-msg error";
+      msg.textContent = friendlyError(err);
+    })
+    .finally(function () {
+      btn.disabled = false;
+    });
+});
+
+function friendlyError(err) {
+  var code = err && err.code;
+  if (code === "auth/popup-closed-by-user") {
+    return "Login popup band ho gaya. Dobara try karein.";
+  }
+  if (code === "auth/popup-blocked") {
+    return "Browser ne popup block kar diya. Popup allow karke dobara try karein.";
+  }
+  if (code === "auth/unauthorized-domain") {
+    return "Yeh domain Firebase me authorize nahi hai (Authentication → Settings → Authorized domains me add karein).";
+  }
+  return "Login nahi ho paya: " + (err && err.message ? err.message : "unknown error");
+}
+</script>
+</body>
+</html>
