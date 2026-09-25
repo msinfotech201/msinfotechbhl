@@ -100,40 +100,161 @@ function wireMobileNav() {
 // built from the single WHATSAPP_NUMBER variable above.
 // Optional data-wa-msg sets the pre-filled message text.
 // ---------------------------------------------------------
+// ---------------------------------------------------------
+// WhatsApp links — every element with [data-wa] gets its href
+// built from the single WHATSAPP_NUMBER variable above.
+// Optional data-wa-msg sets the pre-filled message text (which
+// already contains the product/service context, e.g. which
+// laptop or which service someone is asking about).
+//
+// Clicking one of these buttons ALWAYS opens the lead-capture
+// popup first (name + mobile) before WhatsApp opens — see
+// openWaLeadModal() below. This makes sure every enquiry, from
+// anywhere on the site, is saved with a name and number and
+// shows up in the admin panel.
+// ---------------------------------------------------------
 function wireWhatsappLinks() {
   var defaultMsg = "Hello MS INFOTECH, I would like to enquire about your service.";
   document.querySelectorAll("[data-wa]").forEach(function (el) {
     var msg = el.getAttribute("data-wa-msg") || defaultMsg;
-    el.setAttribute("href", "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg));
-    el.setAttribute("target", "_blank");
-    el.setAttribute("rel", "noopener");
-    el.addEventListener("click", function () { logWhatsappClick(msg); });
+    el.setAttribute("data-wa-msg", msg);
+    el.setAttribute("href", "#");
+    el.removeAttribute("target");
+    // Guard against attaching the same click listener twice: this function
+    // is called again after the Old Laptop / Old Printer stock grids
+    // re-render, and header/footer buttons persist across those re-renders.
+    if (el.dataset.waWired === "1") return;
+    el.dataset.waWired = "1";
+    el.addEventListener("click", function (e) {
+      e.preventDefault();
+      openWaLeadModal(el.getAttribute("data-wa-msg") || defaultMsg);
+    });
   });
-}
-
-// Logs a lightweight record for every "WhatsApp Us" style button on the site
-// (header, hero, floating button, stock pages) — these don't collect a name
-// or mobile number like the Contact page form does, but the admin panel
-// should still show that someone reached out. Best effort: never blocks or
-// delays opening WhatsApp, even if saving fails.
-function logWhatsappClick(msg) {
-  if (typeof db === "undefined" || !db) return;
-  db.collection("inquiries").add({
-    name: "-",
-    mobile: "-",
-    service: "General (WhatsApp button)",
-    message: msg,
-    source: "whatsapp-button",
-    page: window.location.pathname,
-    status: "new",
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).catch(function (err) { console.error("Could not log WhatsApp click:", err); });
 }
 
 function wireCallButtons() {
   document.querySelectorAll("[data-call]").forEach(function (el) {
     el.setAttribute("href", "tel:+917300257678");
   });
+}
+
+// =========================================================
+// WhatsApp lead-capture popup — appears before ANY [data-wa]
+// button opens WhatsApp, on every page. Collects Name + Mobile,
+// saves the enquiry to the database (so it shows up in the admin
+// panel with the visitor's name and number), then opens WhatsApp
+// with the product/service + name + mobile already typed in —
+// the visitor only has to press Send.
+// =========================================================
+var pendingWaMessage = "";
+
+function ensureWaLeadModal() {
+  if (document.getElementById("wa-lead-modal")) return;
+
+  var overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.id = "wa-lead-modal";
+  overlay.innerHTML =
+    '<div class="modal-box" style="max-width:440px;">' +
+      '<button type="button" class="modal-close" id="wa-lead-close" aria-label="Close">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>' +
+      '</button>' +
+      '<div class="modal-content">' +
+        '<h2 style="font-size:1.25rem;">Send Enquiry on WhatsApp</h2>' +
+        '<p style="font-size:.88rem;">Share your name and mobile number &mdash; WhatsApp will open with everything filled in, you just press Send.</p>' +
+        '<form id="wa-lead-form" novalidate>' +
+          '<div class="form-field">' +
+            '<label for="wa-lead-name">Name</label>' +
+            '<input type="text" id="wa-lead-name" required placeholder="Your name">' +
+            '<span class="field-error">Please enter your name.</span>' +
+          '</div>' +
+          '<div class="form-field">' +
+            '<label for="wa-lead-mobile">Mobile Number</label>' +
+            '<input type="tel" id="wa-lead-mobile" required placeholder="10-digit mobile number">' +
+            '<span class="field-error">Please enter a valid 10-digit mobile number.</span>' +
+          '</div>' +
+          '<button type="submit" class="btn btn-red btn-block">Continue to WhatsApp</button>' +
+        '</form>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay || e.target.closest("#wa-lead-close")) closeWaLeadModal();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeWaLeadModal();
+  });
+
+  overlay.querySelector("#wa-lead-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var nameField = overlay.querySelector("#wa-lead-name");
+    var mobileField = overlay.querySelector("#wa-lead-mobile");
+    var name = (nameField.value || "").trim();
+    var mobile = (mobileField.value || "").trim().replace(/\s+/g, "");
+
+    var valid = true;
+    toggleFieldError(nameField, name.length < 2);
+    if (name.length < 2) valid = false;
+
+    var mobileOk = /^[6-9]\d{9}$/.test(mobile.replace(/^(\+?91)/, ""));
+    toggleFieldError(mobileField, !mobileOk);
+    if (!mobileOk) valid = false;
+
+    if (!valid) return;
+
+    var context = pendingWaMessage || "Hello MS INFOTECH, I would like to enquire about your service.";
+    var fullMsg = context + "\n\nName: " + name + "\nMobile: " + mobile;
+
+    // Save to the database (best effort) so this shows up in the admin panel
+    // with the visitor's name and mobile number, exactly like the Contact
+    // page form does — WhatsApp still opens normally even if this fails.
+    if (typeof db !== "undefined" && db) {
+      db.collection("inquiries").add({
+        name: name,
+        mobile: mobile,
+        service: deriveServiceLabel(context),
+        message: context,
+        source: "whatsapp-button",
+        page: window.location.pathname,
+        status: "new",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(function (err) { console.error("Could not save enquiry:", err); });
+    }
+
+    window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(fullMsg), "_blank");
+    closeWaLeadModal();
+    nameField.value = "";
+    mobileField.value = "";
+  });
+}
+
+function openWaLeadModal(msg) {
+  ensureWaLeadModal();
+  pendingWaMessage = msg;
+  var overlay = document.getElementById("wa-lead-modal");
+  toggleFieldError(overlay.querySelector("#wa-lead-name"), false);
+  toggleFieldError(overlay.querySelector("#wa-lead-mobile"), false);
+  overlay.classList.add("is-open");
+  setTimeout(function () { overlay.querySelector("#wa-lead-name").focus(); }, 50);
+}
+
+function closeWaLeadModal() {
+  var overlay = document.getElementById("wa-lead-modal");
+  if (overlay) overlay.classList.remove("is-open");
+}
+
+// Turns a WhatsApp message's product/service context into a short label
+// for the admin panel (e.g. "Lenovo Ideapad S145", "CCTV installation").
+function deriveServiceLabel(msg) {
+  var brandMatch = msg.match(/Brand:\s*([^\n]+)/);
+  var modelMatch = msg.match(/Model:\s*([^\n]+)/);
+  if (brandMatch && modelMatch) return (brandMatch[1] + " " + modelMatch[1]).trim();
+
+  var text = msg.replace(/^Hello MS INFOTECH,?\s*/i, "");
+  var lines = text.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+  var first = (lines[0] || "General Enquiry").split(".")[0].replace(/:$/, "");
+  return first.length > 70 ? first.slice(0, 67) + "..." : first;
 }
 
 function wireFooterYear() {
