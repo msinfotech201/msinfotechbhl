@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
-Disallow: /admin/
+Disallow: /add-laptop.html
+Disallow: /add-printer.html
+Disallow: /admin.html
+Disallow: /admin-login.html
 
 Sitemap: https://msinfotechbhl.com/sitemap.xml

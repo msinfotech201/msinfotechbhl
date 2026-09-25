@@ -20,21 +20,12 @@ ms-infotech-site/
 ├── old-printer.html
 ├── contact.html
 ├── 404.html
+├── add-laptop.html      (owner-only tool — not linked in public nav, blocked in robots.txt)
+├── add-printer.html     (owner-only tool — not linked in public nav, blocked in robots.txt)
 ├── style.css
 ├── script.js
-├── firebase-config.js   (paste your Firebase project keys here)
-├── firebase-init.js
-├── firebase-stock.js
-├── firebase.json        (Firebase Hosting config)
-├── firestore.rules      (Firestore security rules — paste into Firebase Console)
-├── firestore.indexes.json
-├── .firebaserc
-├── admin/
-│   ├── login.html        (Google Sign-In)
-│   ├── panel.html         (admin dashboard)
-│   ├── admin.js
-│   └── admin.css
-├── ADMIN-SETUP.md       (step-by-step Firebase + admin panel setup guide)
+├── laptop-data.js      (edit THIS file to add/change old laptop stock)
+├── printer-data.js     (edit THIS file to add/change old printer stock)
 ├── robots.txt
 ├── sitemap.xml
 ├── CNAME
@@ -65,14 +56,14 @@ ms-infotech-site/
 | old-printer.html | Old printer stock catalog (filters/search/sort/modal) |
 | contact.html | Contact info + WhatsApp enquiry form + map |
 | 404.html | Custom not-found page |
+| add-laptop.html | Owner tool — generates code for laptop-data.js |
+| add-printer.html | Owner tool — generates code for printer-data.js |
 | style.css | All styling (single file) |
 | script.js | All site behaviour: nav, WhatsApp system, laptop + printer stock rendering/filters |
-| firebase-config.js | Your Firebase project keys go here |
-| admin/login.html | Admin login — Google Sign-In |
-| admin/panel.html | Admin dashboard — manage laptops, printers, enquiries, users |
-| firestore.rules | Security rules — only authorized emails can write data |
-| robots.txt | Crawler rules (admin/ is disallowed) |
-| sitemap.xml | 11 public pages listed |
+| laptop-data.js | **Old laptop stock list only** — edit this file to add/change/remove laptops |
+| printer-data.js | **Old printer stock list only** — edit this file to add/change/remove printers |
+| robots.txt | Crawler rules |
+| sitemap.xml | 11 public pages listed (404, add-laptop, add-printer correctly excluded) |
 | CNAME | Custom domain for GitHub Pages |
 | assets/logo.png | Your real logo, background removed, compressed |
 | assets/favicon-48.png / favicon-180.png | Favicon + Apple touch icon |
@@ -81,24 +72,15 @@ ms-infotech-site/
 
 ## C. Files you need to replace / edit yourself
 
-1. **`assets/laptops/`** and **`assets/printers/`** — currently empty. Add real photos of the laptops/printers you have in stock, then type the photo's path (e.g. `assets/laptops/dell-5490.jpg`) into the admin panel form for that item.
-2. **`firebase-config.js`** — paste your Firebase project's config keys here (see `ADMIN-SETUP.md`).
-3. **Old Laptop Stock / Old Printer Stock is now managed from the admin panel**, not by editing a file: go to `admin/login.html` → Sign in with Google → Laptops / Printers tab → Add/Edit/Delete. Changes appear on the live site immediately (no file editing, no re-upload needed).
-4. **To remove an item once it's sold**, delete it from the admin panel, or change its status to `SOLD` to keep it visible as "Sold Out".
-5. **Website enquiries** (from the Contact page form) show up live in the admin panel's **Enquiries** tab.
-6. **Full first-time Firebase setup** (enable Google Sign-In, create the database, paste security rules, authorize your first admin email) is in **`ADMIN-SETUP.md`** — follow it top to bottom once.
-7. **Nothing else needs editing** — logo, address, phone, hours and domain are already final throughout the site.
+1. **`assets/laptops/`** and **`assets/printers/`** — currently empty. Add real photos of the laptops/printers you have in stock.
+2. **Easiest way to add stock:** open `add-laptop.html` (for laptops) or `add-printer.html` (for printers) in your browser (works even by double-clicking the file, or once the site is live at `msinfotechbhl.com/add-laptop.html` / `msinfotechbhl.com/add-printer.html`). Fill in the form, see a live preview, click **Generate Code**, copy it, and paste into `laptop-data.js` / `printer-data.js`. These pages are hidden from Google and not in the menu — they're just for you.
+3. **`laptop-data.js`** / **`printer-data.js`** (manual editing, if you prefer not to use the tools above) — these are the ONE file each for old-laptop / old-printer stock (marked `ADD NEW LAPTOP HERE` / `ADD NEW PRINTER HERE`). Replace the 3 DEMO items in each with your real stock (brand, model, specs, price, status, photo path). Do not edit `script.js` for this — it only holds site behaviour, not the stock lists.
+4. **To remove an item once it's sold** (so it disappears from the site completely), delete its whole `{ ... }` block from `laptop-data.js` / `printer-data.js`. If you'd rather keep it visible for a while as "Sold Out", just change its `status` to `"SOLD"` instead of deleting it.
+5. **Nothing else needs editing** — logo, address, phone, hours and domain are already final throughout the site.
 
 ---
 
 ## D. Exact GitHub Pages upload instructions
-
-> **Note:** the admin panel needs Firebase (Firestore + Auth), so you'll
-> also deploy to **Firebase Hosting** — full steps in `ADMIN-SETUP.md`.
-> GitHub Pages can still host the public site if you prefer; the admin
-> panel and live stock/enquiries still work either way since they talk
-> to Firebase directly, not to wherever the HTML is hosted.
-
 
 1. Go to [github.com](https://github.com) → **New repository** (any name, e.g. `ms-infotech-website`). Public repo, no README/gitignore needed (you already have one).
 2. On your computer, unzip this project, then either:
@@ -175,4 +157,4 @@ Run through this after the domain goes live:
 ---
 
 ## Notes on content honesty
-No years of experience, customer counts, ratings, reviews, or awards are invented anywhere on the site or in the SEO schema. Old Laptop Stock and Old Printer Stock load live from your Firestore database (empty until you add real stock from the admin panel, as described above) — no demo/sample items ship in this build.
+No years of experience, customer counts, ratings, reviews, or awards are invented anywhere on the site or in the SEO schema. The 3 sample laptops on the Old Laptop Stock page and the 3 sample printers on the Old Printer Stock page are clearly labeled **DEMO** (badge on the card) and are not presented as real available stock — replace them with your actual inventory using `laptop-data.js` / `printer-data.js` as described above.

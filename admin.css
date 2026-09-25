@@ -1,0 +1,107 @@
+/* =========================================================
+   MS INFOTECH — admin.css
+   Loaded together with style.css on admin-login.html / admin.html
+   ========================================================= */
+
+body.admin-body{ background:var(--paper); min-height:100vh; }
+
+/* ---------- Login page ---------- */
+.admin-login-wrap{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.admin-login-card{
+  background:#fff; border:1px solid var(--line); border-radius:14px; max-width:400px; width:100%;
+  padding:40px 34px; text-align:center; box-shadow:0 18px 44px rgba(11,27,51,.10);
+}
+.admin-login-card img{ width:58px; margin:0 auto 14px; }
+.admin-login-card h1{ font-size:1.35rem; margin-bottom:.25em; }
+.admin-login-card p{ font-size:.9rem; }
+.btn-google{
+  display:flex; align-items:center; justify-content:center; gap:10px; width:100%;
+  background:#fff; color:var(--ink); border:1px solid var(--line); border-radius:8px;
+  padding:13px 18px; font-family:var(--font-body); font-weight:600; font-size:.95rem;
+  cursor:pointer; margin-top:22px; transition:box-shadow .15s ease, border-color .15s ease;
+}
+.btn-google:hover{ border-color:var(--blue); box-shadow:0 6px 16px rgba(22,82,196,.15); }
+.btn-google:disabled{ opacity:.6; cursor:default; }
+.admin-msg{ margin-top:18px; font-size:.86rem; border-radius:8px; padding:11px 14px; display:none; }
+.admin-msg.is-error{ display:block; background:rgba(225,38,63,.09); color:var(--red-dark); }
+.admin-msg.is-info{ display:block; background:rgba(22,82,196,.09); color:var(--blue-dark); }
+.admin-login-foot{ margin-top:26px; font-size:.8rem; }
+.admin-login-foot a{ color:var(--ink-soft); }
+
+/* ---------- Dashboard shell ---------- */
+.admin-topbar{
+  background:var(--navy); color:#fff; padding:14px 0; position:sticky; top:0; z-index:50;
+}
+.admin-topbar .container{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+.admin-brand{ display:flex; align-items:center; gap:10px; }
+.admin-brand img{ width:32px; height:32px; }
+.admin-brand strong{ font-family:var(--font-head); font-size:1rem; }
+.admin-user{ display:flex; align-items:center; gap:10px; font-size:.85rem; color:#C6D2EC; }
+.admin-user img{ width:32px; height:32px; border-radius:50%; border:2px solid rgba(255,255,255,.25); }
+.admin-user .super-tag{ background:var(--red); color:#fff; font-size:.66rem; font-weight:700; padding:2px 8px; border-radius:20px; margin-left:4px; }
+.btn-logout{
+  background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.2); border-radius:7px;
+  padding:8px 14px; font-size:.82rem; font-weight:600; cursor:pointer;
+}
+.btn-logout:hover{ background:rgba(255,255,255,.16); }
+
+.admin-main{ padding:32px 0 70px; }
+
+/* Stat cards */
+.stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:30px; }
+@media (max-width:820px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+.stat-card{ background:#fff; border:1px solid var(--line); border-radius:12px; padding:18px 20px; }
+.stat-card .num{ font-family:var(--font-head); font-size:1.9rem; font-weight:700; color:var(--navy); line-height:1; }
+.stat-card .label{ font-size:.8rem; color:var(--ink-soft); margin-top:6px; }
+
+/* Tabs */
+.admin-tabs{ display:flex; gap:6px; border-bottom:1px solid var(--line); margin-bottom:24px; flex-wrap:wrap; }
+.admin-tab-btn{
+  background:none; border:none; padding:12px 18px; font-family:var(--font-head); font-weight:600;
+  font-size:.92rem; color:var(--ink-soft); cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-1px;
+}
+.admin-tab-btn.is-active{ color:var(--navy); border-bottom-color:var(--red); }
+.admin-panel{ display:none; }
+.admin-panel.is-active{ display:block; }
+
+.panel-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; flex-wrap:wrap; }
+.panel-head h2{ font-size:1.15rem; margin:0; }
+
+/* Generic data list */
+.data-list{ display:flex; flex-direction:column; gap:12px; }
+.data-row{
+  background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px 18px;
+  display:flex; gap:16px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;
+}
+.data-row .main{ flex:1; min-width:220px; }
+.data-row h3{ font-size:1rem; margin:0 0 4px; }
+.data-row .meta{ font-size:.82rem; color:var(--ink-soft); display:flex; gap:14px; flex-wrap:wrap; margin-bottom:6px; }
+.data-row .msg-text{ font-size:.88rem; color:var(--ink); background:var(--paper); border-radius:7px; padding:8px 11px; }
+.data-row .actions{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+
+.status-pill{ font-size:.72rem; font-weight:700; padding:4px 11px; border-radius:20px; color:#fff; white-space:nowrap; }
+.status-pill.new{ background:var(--red); }
+.status-pill.contacted{ background:var(--amber); }
+.status-pill.done{ background:var(--green); }
+
+.btn-mini{ font-size:.78rem; font-weight:600; padding:7px 13px; border-radius:7px; border:1px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; }
+.btn-mini:hover{ border-color:var(--blue); color:var(--blue); }
+.btn-mini.danger:hover{ border-color:var(--red); color:var(--red); }
+.btn-mini.primary{ background:var(--blue); border-color:var(--blue); color:#fff; }
+.btn-mini.primary:hover{ background:var(--blue-dark); border-color:var(--blue-dark); color:#fff; }
+
+.empty-note{ text-align:center; padding:50px 20px; color:var(--ink-soft); border:1px dashed var(--line); border-radius:10px; background:#fff; }
+
+/* Add admin form */
+.add-admin-form{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:22px; }
+.add-admin-form input{
+  flex:1; min-width:220px; padding:11px 13px; border:1px solid var(--line); border-radius:7px; font-family:var(--font-body); font-size:.9rem;
+}
+.add-admin-form input:focus{ outline:none; border-color:var(--blue); }
+
+.super-badge{ background:var(--navy); color:#fff; font-size:.68rem; font-weight:700; padding:3px 9px; border-radius:20px; margin-left:8px; }
+.you-badge{ background:rgba(22,82,196,.12); color:var(--blue); font-size:.68rem; font-weight:700; padding:3px 9px; border-radius:20px; margin-left:8px; }
+
+.loading-note{ text-align:center; padding:30px; color:var(--ink-soft); font-size:.9rem; }

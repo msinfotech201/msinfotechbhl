@@ -10,9 +10,10 @@
 const WHATSAPP_NUMBER = "917300257678";
 
 // =========================================================
-// OLD LAPTOP STOCK DATA now lives in Firestore, managed from
-// the admin panel (admin/panel.html -> Laptops tab). See
-// firebase-stock.js for how it's loaded into laptopStock below.
+// OLD LAPTOP STOCK DATA now lives in its own file:
+//   laptop-data.js
+// (open that file to add, edit, or remove a laptop — this
+// file, script.js, only contains the site's behaviour/logic)
 // =========================================================
 
 // =========================================================
@@ -31,25 +32,20 @@ const LAPTOP_PLACEHOLDER =
     "</svg>"
   );
 
-// laptopStock / printerStock now load live from Firestore
-// (see firebase-stock.js). They start empty here so the page
-// never breaks before that data arrives.
-var laptopStock = [];
-var printerStock = [];
-
 document.addEventListener("DOMContentLoaded", function () {
   wireMobileNav();
   wireWhatsappLinks();
   wireCallButtons();
   wireEnquiryForm();
   wireFooterYear();
-  // initLaptopStockPage() / initPrinterStockPage() are now called
-  // by firebase-stock.js once the live stock data has been fetched.
+  initLaptopStockPage();
+  initPrinterStockPage();
 });
 
 // =========================================================
-// OLD PRINTER STOCK DATA now lives in Firestore, managed from
-// the admin panel (admin/panel.html -> Printers tab).
+// OLD PRINTER STOCK DATA lives in its own file:
+//   printer-data.js
+// (open that file to add, edit, or remove a printer)
 // =========================================================
 
 // Placeholder image for a printer photo that is missing/not uploaded yet
@@ -167,21 +163,19 @@ function wireEnquiryForm() {
     var note = form.querySelector("#form-note");
     if (note) note.textContent = "Opening WhatsApp — please press Send inside WhatsApp to complete your enquiry.";
 
-    // Also save the enquiry to Firestore so it shows up in the
-    // admin panel's Enquiries tab. Best-effort: if Firebase isn't
-    // configured/loaded on this page, this quietly does nothing —
-    // the WhatsApp flow below still works either way.
-    if (window.db) {
-      window.db.collection("enquiries").add({
+    // Save a copy of this enquiry to the database so the admin panel can show it,
+    // even if the visitor closes WhatsApp without pressing Send there.
+    // This is "best effort" — WhatsApp still opens normally even if saving fails
+    // (e.g. Firebase isn't loaded on this page, or the visitor is offline).
+    if (typeof db !== "undefined" && db) {
+      db.collection("inquiries").add({
         name: name,
         mobile: mobile,
         service: service,
-        message: message || "",
+        message: message || "-",
         status: "new",
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(function (err) {
-        console.warn("Enquiry could not be saved to Firestore:", err);
-      });
+      }).catch(function (err) { console.error("Could not save enquiry to database:", err); });
     }
 
     window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(text), "_blank");

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard | MS INFOTECH</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="assets/favicon-48.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body class="admin-body">
+
+<header class="admin-topbar">
+  <div class="container">
+    <div class="admin-brand">
+      <img src="assets/logo.png" alt="MS INFOTECH">
+      <strong>Admin Panel</strong>
+    </div>
+    <div class="admin-user" id="admin-user-box">
+      <span class="loading-note" style="padding:0;">Loading\u2026</span>
+    </div>
+  </div>
+</header>
+
+<main class="admin-main">
+  <div class="container">
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="num" id="stat-total">&mdash;</div><div class="label">Total Enquiries</div></div>
+      <div class="stat-card"><div class="num" id="stat-new">&mdash;</div><div class="label">New Enquiries</div></div>
+      <div class="stat-card"><div class="num" id="stat-admins">&mdash;</div><div class="label">Admin Users</div></div>
+      <div class="stat-card"><div class="num" id="stat-logins">&mdash;</div><div class="label">Total Admin Logins</div></div>
+    </div>
+
+    <div class="admin-tabs">
+      <button type="button" class="admin-tab-btn is-active" data-tab="inquiries">Inquiries</button>
+      <button type="button" class="admin-tab-btn" data-tab="admins">Admin Users</button>
+      <button type="button" class="admin-tab-btn" data-tab="logins">Login History</button>
+    </div>
+
+    <!-- ============ INQUIRIES ============ -->
+    <section class="admin-panel is-active" id="panel-inquiries">
+      <div class="panel-head">
+        <h2>Website Enquiries</h2>
+      </div>
+      <div class="data-list" id="inquiries-list">
+        <p class="loading-note">Loading enquiries\u2026</p>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN USERS ============ -->
+    <section class="admin-panel" id="panel-admins">
+      <div class="panel-head">
+        <h2>Admin Users</h2>
+      </div>
+      <form class="add-admin-form" id="add-admin-form">
+        <input type="email" id="new-admin-email" placeholder="Gmail address to grant admin access" required>
+        <button type="submit" class="btn-mini primary">+ Add Admin</button>
+      </form>
+      <div id="add-admin-msg" class="admin-msg"></div>
+      <div class="data-list" id="admins-list">
+        <p class="loading-note">Loading admin users\u2026</p>
+      </div>
+    </section>
+
+    <!-- ============ LOGIN HISTORY ============ -->
+    <section class="admin-panel" id="panel-logins">
+      <div class="panel-head">
+        <h2>Admin Login History</h2>
+      </div>
+      <div class="data-list" id="logins-list">
+        <p class="loading-note">Loading login history\u2026</p>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+var currentUser = null;
+var currentAdminDoc = null;
+
+// ---------------------------------------------------------
+// Guard: only signed-in users who exist in the admins collection may stay here.
+// ---------------------------------------------------------
+auth.onAuthStateChanged(function (user) {
+  if (!user) {
+    window.location.href = "admin-login.html";
+    return;
+  }
+  var email = (user.email || "").toLowerCase();
+  db.collection("admins").doc(email).get().then(function (doc) {
+    if (!doc.exists) {
+      auth.signOut().then(function () { window.location.href = "admin-login.html"; });
+      return;
+    }
+    currentUser = user;
+    currentAdminDoc = doc.data();
+    renderUserBox(user, currentAdminDoc);
+    startInquiries();
+    startAdmins();
+    startLogins();
+  }).catch(function () {
+    window.location.href = "admin-login.html";
+  });
+});
+
+function renderUserBox(user, adminData) {
+  var box = document.getElementById("admin-user-box");
+  var superTag = adminData && adminData.isSuperAdmin ? '<span class="super-tag">SUPER</span>' : "";
+  box.innerHTML =
+    '<img src="' + escapeAttr(user.photoURL || "assets/favicon-48.png") + '" alt="">' +
+    '<span>' + escapeHtml(user.displayName || user.email) + superTag + '</span>' +
+    '<button type="button" class="btn-logout" id="logout-btn">Log out</button>';
+  document.getElementById("logout-btn").addEventListener("click", function () {
+    auth.signOut().then(function () { window.location.href = "admin-login.html"; });
+  });
+}
+
+// ---------------------------------------------------------
+// Tabs
+// ---------------------------------------------------------
+document.querySelectorAll(".admin-tab-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    document.querySelectorAll(".admin-tab-btn").forEach(function (b) { b.classList.remove("is-active"); });
+    document.querySelectorAll(".admin-panel").forEach(function (p) { p.classList.remove("is-active"); });
+    btn.classList.add("is-active");
+    document.getElementById("panel-" + btn.getAttribute("data-tab")).classList.add("is-active");
+  });
+});
+
+// ---------------------------------------------------------
+// INQUIRIES — live list from Firestore
+// ---------------------------------------------------------
+function startInquiries() {
+  db.collection("inquiries").orderBy("createdAt", "desc").onSnapshot(function (snap) {
+    var list = document.getElementById("inquiries-list");
+    var total = snap.size;
+    var newCount = 0;
+
+    if (snap.empty) {
+      list.innerHTML = '<p class="empty-note">No enquiries yet. Submissions from the Contact page will appear here.</p>';
+    } else {
+      var html = "";
+      snap.forEach(function (doc) {
+        var d = doc.data();
+        var status = d.status || "new";
+        if (status === "new") newCount++;
+        var when = d.createdAt && d.createdAt.toDate ? formatDateTime(d.createdAt.toDate()) : "Just now";
+        var waMsg = encodeURIComponent("Hello " + (d.name || "") + ", this is MS INFOTECH regarding your enquiry.");
+
+        html +=
+          '<div class="data-row" data-id="' + doc.id + '">' +
+            '<div class="main">' +
+              '<h3>' + escapeHtml(d.name || "Unknown") + ' <span class="status-pill ' + status + '">' + status.toUpperCase() + '</span></h3>' +
+              '<div class="meta">' +
+                '<span>\ud83d\udcde <a href="tel:+91' + escapeAttr(d.mobile || "") + '">' + escapeHtml(d.mobile || "-") + '</a></span>' +
+                '<span>\ud83d\udee0\ufe0f ' + escapeHtml(d.service || "-") + '</span>' +
+                '<span>\ud83d\udd52 ' + when + '</span>' +
+              '</div>' +
+              '<div class="msg-text">' + escapeHtml(d.message || "-") + '</div>' +
+            '</div>' +
+            '<div class="actions">' +
+              '<a class="btn-mini" target="_blank" href="https://wa.me/91' + escapeAttr(d.mobile || "") + '?text=' + waMsg + '">WhatsApp</a>' +
+              (status !== "contacted" ? '<button type="button" class="btn-mini set-status" data-status="contacted">Mark Contacted</button>' : "") +
+              (status !== "done" ? '<button type="button" class="btn-mini set-status" data-status="done">Mark Done</button>' : "") +
+              (status !== "new" ? '<button type="button" class="btn-mini set-status" data-status="new">Mark New</button>' : "") +
+              '<button type="button" class="btn-mini danger delete-inquiry">Delete</button>' +
+            '</div>' +
+          '</div>';
+      });
+      list.innerHTML = html;
+    }
+
+    document.getElementById("stat-total").textContent = total;
+    document.getElementById("stat-new").textContent = newCount;
+  }, function (err) {
+    document.getElementById("inquiries-list").innerHTML =
+      '<p class="empty-note">Could not load enquiries: ' + escapeHtml(err.message) + '</p>';
+  });
+}
+
+document.getElementById("inquiries-list").addEventListener("click", function (e) {
+  var row = e.target.closest(".data-row");
+  if (!row) return;
+  var id = row.getAttribute("data-id");
+
+  if (e.target.classList.contains("set-status")) {
+    db.collection("inquiries").doc(id).update({ status: e.target.getAttribute("data-status") })
+      .catch(function (err) { alert("Could not update status: " + err.message); });
+  }
+
+  if (e.target.classList.contains("delete-inquiry")) {
+    if (confirm("Delete this enquiry permanently?")) {
+      db.collection("inquiries").doc(id).delete()
+        .catch(function (err) { alert("Could not delete: " + err.message); });
+    }
+  }
+});
+
+// ---------------------------------------------------------
+// ADMIN USERS — list + add + remove
+// ---------------------------------------------------------
+function startAdmins() {
+  db.collection("admins").orderBy("addedAt", "asc").onSnapshot(function (snap) {
+    var list = document.getElementById("admins-list");
+    document.getElementById("stat-admins").textContent = snap.size;
+
+    if (snap.empty) {
+      list.innerHTML = '<p class="empty-note">No admin users found.</p>';
+      return;
+    }
+
+    var html = "";
+    snap.forEach(function (doc) {
+      var d = doc.data();
+      var email = doc.id;
+      var isSelf = currentUser && email === (currentUser.email || "").toLowerCase();
+      var when = d.addedAt && d.addedAt.toDate ? formatDateTime(d.addedAt.toDate()) : "-";
+      var canRemove = !d.isSuperAdmin;
+
+      html +=
+        '<div class="data-row" data-email="' + escapeAttr(email) + '">' +
+          '<div class="main">' +
+            '<h3>' + escapeHtml(d.name || email) +
+              (d.isSuperAdmin ? '<span class="super-badge">SUPER ADMIN</span>' : "") +
+              (isSelf ? '<span class="you-badge">YOU</span>' : "") +
+            '</h3>' +
+            '<div class="meta"><span>' + escapeHtml(email) + '</span><span>Added ' + when + '</span><span>By ' + escapeHtml(d.addedBy || "-") + '</span></div>' +
+          '</div>' +
+          '<div class="actions">' +
+            (canRemove ? '<button type="button" class="btn-mini danger remove-admin">Remove Access</button>' : '<span class="meta">Cannot be removed</span>') +
+          '</div>' +
+        '</div>';
+    });
+    list.innerHTML = html;
+  }, function (err) {
+    document.getElementById("admins-list").innerHTML =
+      '<p class="empty-note">Could not load admin users: ' + escapeHtml(err.message) + '</p>';
+  });
+}
+
+document.getElementById("add-admin-form").addEventListener("submit", function (e) {
+  e.preventDefault();
+  var input = document.getElementById("new-admin-email");
+  var msgBox = document.getElementById("add-admin-msg");
+  var email = input.value.trim().toLowerCase();
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msgBox.className = "admin-msg is-error";
+    msgBox.textContent = "Enter a valid email address.";
+    return;
+  }
+
+  db.collection("admins").doc(email).set({
+    email: email,
+    name: "",
+    isSuperAdmin: false,
+    addedBy: currentUser ? currentUser.email : "-",
+    addedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }).then(function () {
+    msgBox.className = "admin-msg is-info";
+    msgBox.textContent = email + " can now sign in to the admin panel with Google.";
+    input.value = "";
+  }).catch(function (err) {
+    msgBox.className = "admin-msg is-error";
+    msgBox.textContent = "Could not add admin: " + err.message;
+  });
+});
+
+document.getElementById("admins-list").addEventListener("click", function (e) {
+  if (!e.target.classList.contains("remove-admin")) return;
+  var row = e.target.closest(".data-row");
+  var email = row.getAttribute("data-email");
+  if (confirm("Remove admin access for " + email + "?")) {
+    db.collection("admins").doc(email).delete()
+      .catch(function (err) { alert("Could not remove: " + err.message); });
+  }
+});
+
+// ---------------------------------------------------------
+// LOGIN HISTORY — who signed in to the admin panel, and when
+// ---------------------------------------------------------
+function startLogins() {
+  db.collection("adminLogins").orderBy("loginAt", "desc").limit(100).onSnapshot(function (snap) {
+    var list = document.getElementById("logins-list");
+    document.getElementById("stat-logins").textContent = snap.size;
+
+    if (snap.empty) {
+      list.innerHTML = '<p class="empty-note">No login history yet.</p>';
+      return;
+    }
+
+    var html = "";
+    snap.forEach(function (doc) {
+      var d = doc.data();
+      var when = d.loginAt && d.loginAt.toDate ? formatDateTime(d.loginAt.toDate()) : "Just now";
+      html +=
+        '<div class="data-row">' +
+          '<div class="main">' +
+            '<h3>' + escapeHtml(d.name || d.email || "Unknown") + '</h3>' +
+            '<div class="meta"><span>' + escapeHtml(d.email || "-") + '</span><span>\ud83d\udd52 ' + when + '</span></div>' +
+            '<div class="msg-text">' + escapeHtml((d.userAgent || "-").slice(0, 140)) + '</div>' +
+          '</div>' +
+        '</div>';
+    });
+    list.innerHTML = html;
+  }, function (err) {
+    document.getElementById("logins-list").innerHTML =
+      '<p class="empty-note">Could not load login history: ' + escapeHtml(err.message) + '</p>';
+  });
+}
+
+// ---------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------
+function formatDateTime(date) {
+  return date.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) +
+    ", " + date.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+}
+function escapeHtml(str) {
+  return String(str == null ? "" : str).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+  });
+}
+function escapeAttr(str) { return escapeHtml(str); }
+</script>
+</body>
+</html>

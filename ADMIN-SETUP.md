@@ -1,120 +1,75 @@
-# MS INFOTECH — Admin Panel + Firebase Setup Guide
+# MS INFOTECH — Admin Panel Setup Guide
 
-Yeh guide aapko step-by-step batayegi ki naya Admin Panel Firebase ke
-saath kaise chalu karein. Login **Google Sign-In** se hota hai — koi
-alag password banane/yaad rakhne ki zaroorat nahi.
+Your site now has:
+- **`contact.html`** — every enquiry submitted is saved to a database (in addition to opening WhatsApp, exactly as before).
+- **`admin-login.html`** — sign-in page, **Google Sign-In only** (no separate username/password).
+- **`admin.html`** — the admin dashboard: enquiries, admin user management, and admin login history.
 
-## Kya naya add hua hai
+This uses **Firebase** (Google's backend service) for the database (Firestore) and login (Authentication). It is free for a small business site like this one — you will not need a paid plan. It is still a plain static site (no server, still works on GitHub Pages) — Firebase runs entirely from the browser.
 
-- **/admin/login.html** — "Sign in with Google" button
-- **/admin/panel.html** — Admin dashboard: Laptops, Printers, Enquiries, Users
-- Har page ke header me ab ek **Admin** button hai (top-right, services ke
-  bagal me), jo `admin/login.html` par le jaata hai.
-- Old Laptop Stock aur Old Printer Stock ab **Firestore database** se live
-  load hoti hai — admin panel se add/edit/delete karte hi website par turant
-  dikhega. `laptop-data.js` aur `printer-data.js` ab **use nahi ho rahi**
-  (sirf reference ke liye rakhi hain).
-- Contact form (`contact.html`) ki har enquiry ab WhatsApp ke saath-saath
-  **admin panel ke "Enquiries" tab me bhi save hoti hai**.
-- **Users tab** (sirf "admin" role ko dikhta hai) — yahan se naya Gmail
-  address daal kar access dete hain (unka password nahi banana padta,
-  wo apne Google account se hi login kar lenge).
+Follow these 6 steps once, before you upload the site.
 
 ---
 
-## STEP 1 — Firebase project banayein
+## Step 1 — Enable Firestore Database
 
-1. https://console.firebase.google.com kholein → **Add project** →
-   naam dein (jaise `msinfotechbhl`) → project bana lein.
+1. Go to the [Firebase Console](https://console.firebase.google.com/) → open your project **`msinfotech-f0035`** (this project already matches the config in `firebase-config.js`).
+2. In the left menu, click **Build → Firestore Database → Create database**.
+3. Choose a location close to you (e.g. `asia-south1 (Mumbai)`), start in **Production mode**, click **Create**.
 
-## STEP 2 — Google Sign-In on karein
+## Step 2 — Enable Google Sign-In
 
-1. Left menu me **Build → Authentication** → **Get started**
-2. **Sign-in method** tab → **Google** → Enable karein
-3. **Project support email** select karke **Save** kar dein
+1. Left menu → **Build → Authentication → Get started**.
+2. Under the **Sign-in method** tab, click **Google**, toggle it **Enable**, pick a support email, **Save**.
 
-## STEP 3 — Firestore Database banayein
+## Step 3 — Set your admin email (2 places)
 
-1. Left menu me **Build → Firestore Database** → **Create database**
-2. **Production mode** select karein → apna region choose karein (jaise
-   `asia-south1` — Mumbai) → Enable
+Open **`firebase-config.js`** and change this line to the exact Gmail address you (the owner) will sign in with:
 
-## STEP 4 — Security Rules laga dein (bahut zaroori)
-
-1. Firestore Database → **Rules** tab kholein
-2. Is ZIP ki `firestore.rules` file ka poora content copy karein aur
-   console ke rules box me paste karke **Publish** kar dein.
-3. Yehi rule ensure karta hai ki **koi aur website ka data change na kar
-   paaye, aur enquiries ka data koi bahar wala na dekh paaye** — sirf
-   aapke admin/staff users hi kar sakte hain.
-
-## STEP 5 — Web app add karke config copy karein
-
-1. Project Settings (⚙️ icon) → **Your apps** → Web (`</>`) icon → app
-   register karein (naam kuch bhi)
-2. Jo `firebaseConfig = { ... }` object dikhega, use copy karein
-3. Is ZIP ki root me `firebase-config.js` file kholein aur apna config
-   waha paste kar dein (jahan `YOUR_API_KEY` waghera likha hai)
-
-## STEP 6 — Pehla Admin banayein (sirf ek baar, manually)
-
-Google Sign-In me password nahi banta, isliye pehla admin ko sirf
-**allowlist** karna hai — koi account banana nahi padta:
-
-1. Firestore Database → **Data** tab → **Start collection** →
-   Collection ID: `admins`
-2. **Document ID**: bilkul yeh type karein (auto-ID mat lena):
-   ```
-   ronakcomputerbhl@gmail.com
-   ```
-3. Fields add karein:
-   - `email` (string) → `ronakcomputerbhl@gmail.com`
-   - `role` (string) → `admin`
-4. **Save**
-
-Bas — ab `admin/login.html` par jaakar **"Sign in with Google"** dabayein
-aur wahi Google account select karein — turant panel khul jaayega. Isi
-Users tab se aage aur log add kiye ja sakte hain (unhe sirf apna Gmail
-select karke login karna hoga, kuch aur setup nahi karna padega).
-
-## STEP 7 — Firebase Hosting par deploy karein
-
-Terminal/CMD kholein, is project folder me jaayein, phir:
-
-```
-npm install -g firebase-tools
-firebase login
-firebase deploy
+```js
+var SUPER_ADMIN_EMAIL = "owner@gmail.com";
 ```
 
-(Is ZIP me `firebase.json` aur `.firebaserc` pehle se hain — bas
-`.firebaserc` me `YOUR_FIREBASE_PROJECT_ID` ko apne asli Project ID se
-badal dein, jo Project Settings me milega.)
+Then open **`firestore.rules`** and change the matching line to the **same email, in lowercase**:
 
-Deploy hone ke baad Firebase ek live URL dega
-(jaise `https://msinfotechbhl.web.app`) — yeh domain Google Sign-In ke
-liye Firebase khud-ba-khud authorize kar deta hai. Agar aap apna khud ka
-domain (jaise `msinfotechbhl.com`) use karte hain, to use bhi add karna
-hoga: **Authentication → Settings → Authorized domains → Add domain**.
+```js
+function isBootstrapSuperAdmin() {
+  return isSignedIn() && request.auth.token.email == "owner@gmail.com";
+}
+```
+
+> This is the account that becomes admin automatically the first time it signs in. After that first login, you add/remove every other admin directly from the Admin Panel's "Admin Users" tab — you will never need to edit these files again.
+
+## Step 4 — Publish the security rules
+
+1. In Firebase Console → **Firestore Database → Rules** tab.
+2. Delete the default text and paste in the **entire contents of `firestore.rules`** from this project (with your email already edited in, from Step 3).
+3. Click **Publish**.
+
+These rules make sure: anyone can submit the contact form, but only your approved admin accounts can read enquiries, see who else is an admin, or view login history.
+
+## Step 5 — Add your live domain to Authorized Domains
+
+1. Authentication → **Settings** tab → **Authorized domains**.
+2. Add `msinfotechbhl.com` (and `www.msinfotechbhl.com` if you use it). `localhost` is already listed, which is useful for testing.
+
+## Step 6 — Upload and test
+
+1. Upload the whole project (including the new `firebase-config.js`, `admin.css`, `admin-login.html`, `admin.html`, `firestore.rules`) to GitHub exactly as before.
+2. Visit `https://msinfotechbhl.com/admin-login.html`, click **Sign in with Google**, and sign in with the email from Step 3. You should land on the dashboard.
+3. Submit a test enquiry from `https://msinfotechbhl.com/contact.html` and confirm it appears under the **Inquiries** tab within a few seconds.
+4. To give a second person admin access, sign in as yourself, open the **Admin Users** tab, and add their Gmail address — they can then sign in the same way.
 
 ---
 
-## Security kaise kaam karti hai (short me)
+## What the admin panel shows
 
-- `firebase-config.js` ki keys "secret" nahi hoti — Firebase khud inhe
-  public rakhna normal maanta hai.
-- Asli security **Firestore Rules** se hoti hai: koi bhi apne Google
-  account se login kar sakta hai, par jab tak uska Gmail address
-  `admins` collection me na ho, use admin panel me **kuch dikhega nahi
-  aur kuch edit nahi kar payega** — turant sign-out ho jaayega.
-- Naye log sirf ek maujooda "admin" hi Users tab se add kar sakta hai.
-- Isliye "koi aur website open/change na kar paaye" wali requirement
-  Firestore Rules se guaranteed hai, na ki chhupane se.
+- **Inquiries** — every enquiry submitted through the Contact page form: name, mobile, service, message, date/time, and a status (New / Contacted / Done) you can update or delete. A WhatsApp button lets you reply directly.
+- **Admin Users** — every Google account allowed into the admin panel, who added them, and when. You can add or remove access here (the original super admin account cannot be removed, so you can never lock yourself out).
+- **Login History** — a record of every time an admin signed in: who, and when.
 
-## Purane files ka kya karna hai
+## Notes
 
-- `laptop-data.js`, `printer-data.js` — ab load nahi hoti, safely ignore
-  kar sakte hain (delete bhi kar sakte hain agar chahein).
-- `add-laptop.html`, `add-printer.html` — yeh purana "code generate karke
-  copy-paste karo" wala tool tha, ab zaroorat nahi (admin panel isko
-  replace kar chuka hai), par file waise hi rakhi hai, koi nuksan nahi.
+- `admin-login.html` and `admin.html` are excluded from search engines (`robots.txt` and `noindex`), but they are not secret URLs — the real protection is the Google Sign-In + admin allowlist, enforced both in the page and in the database rules.
+- If someone who is *not* on your admin list tries to sign in, they see "not authorized" and are signed out immediately — they never see any data.
+- Firestore's free tier (50,000 reads / 20,000 writes per day) is far more than a small business site like this will ever use.

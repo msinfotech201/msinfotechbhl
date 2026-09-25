@@ -2,58 +2,49 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Admins are keyed by their (lowercase) Gmail address, not UID —
-    // this lets an admin pre-authorize someone's Google account
-    // before that person has ever signed in.
-    function myEmail() {
-      return request.auth.token.email.lower();
-    }
     function isSignedIn() {
-      return request.auth != null && request.auth.token.email_verified == true;
+      return request.auth != null;
     }
-    function adminDoc() {
-      return get(/databases/$(database)/documents/admins/$(myEmail()));
-    }
-    // Signed in AND has a document in "admins" (staff or admin role)
-    function isStaffOrAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(myEmail()));
-    }
-    // Signed in AND role == "admin" specifically (can manage users)
+
+    // True once the signed-in user's email exists as a document in /admins.
     function isAdmin() {
-      return isStaffOrAdmin() && adminDoc().data.role == 'admin';
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
     }
 
-    // Old Laptop Stock — public can view (site catalogue),
-    // only logged-in staff/admin can add/edit/delete.
-    match /laptops/{docId} {
-      allow read: if true;
-      allow create, update, delete: if isStaffOrAdmin();
+    // ⚠️ Must exactly match SUPER_ADMIN_EMAIL in firebase-config.js (lowercase).
+    // This only matters for the very first login, to create the first admin record.
+    function isBootstrapSuperAdmin() {
+      return isSignedIn() && request.auth.token.email == "owner@gmail.com";
     }
 
-    // Old Printer Stock — same rule as laptops.
-    match /printers/{docId} {
-      allow read: if true;
-      allow create, update, delete: if isStaffOrAdmin();
-    }
-
-    // Website enquiries — anyone can SUBMIT (contact form),
-    // but only staff/admin can read the list, update status, or delete.
-    // This keeps customer contact details private from the public.
-    match /enquiries/{docId} {
+    // ---- Enquiries (from the Contact page form) ----
+    // Anyone visiting the site can create one (no login required).
+    // Only admins can read, update (status) or delete them.
+    match /inquiries/{inquiryId} {
       allow create: if true;
-      allow read, update, delete: if isStaffOrAdmin();
+      allow read, update, delete: if isAdmin();
     }
 
-    // Admin/staff accounts (doc ID = lowercase Gmail address) — a
-    // user can read their own record (needed at login to check
-    // their access); only an "admin" role user can read the full
-    // list, or add/edit/remove users.
-    match /admins/{emailId} {
-      allow read: if isSignedIn() && (myEmail() == emailId || isAdmin());
-      allow create, update, delete: if isAdmin();
+    // ---- Admins list ----
+    // Only admins can read/manage the list, except the very first bootstrap
+    // login, which is allowed to create its own record.
+    match /admins/{email} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() || (isBootstrapSuperAdmin() && email == request.auth.token.email);
+      allow update, delete: if isAdmin();
     }
 
-    // Everything else stays locked by default.
+    // ---- Admin login history ----
+    // An admin may only write their own login record; only admins can read the log.
+    match /adminLogins/{logId} {
+      allow create: if isAdmin() && request.resource.data.email == request.auth.token.email
+                     || (isBootstrapSuperAdmin() && request.resource.data.email == request.auth.token.email);
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Everything else is closed by default.
     match /{document=**} {
       allow read, write: if false;
     }
