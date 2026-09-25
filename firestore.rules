@@ -12,7 +12,7 @@ service cloud.firestore {
     // it does not depend on any document existing in the database, so this
     // account can never get accidentally locked out.
     function isSuperAdmin() {
-      return isSignedIn() && request.auth.token.email.lower() == "owner@gmail.com";
+      return isSignedIn() && request.auth.token.email.lower() == "msinfotech.bhilwara@gmail.com";
     }
 
     // True for the super admin above, OR for any email that has a document

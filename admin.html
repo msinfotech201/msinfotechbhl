@@ -155,21 +155,23 @@ function startInquiries() {
         var status = d.status || "new";
         if (status === "new") newCount++;
         var when = d.createdAt && d.createdAt.toDate ? formatDateTime(d.createdAt.toDate()) : "Just now";
-        var waMsg = encodeURIComponent("Hello " + (d.name || "") + ", this is MS INFOTECH regarding your enquiry.");
+        var waMsg = encodeURIComponent("Hello, this is MS INFOTECH regarding your enquiry.");
+        var hasMobile = d.mobile && d.mobile !== "-";
 
         html +=
           '<div class="data-row" data-id="' + doc.id + '">' +
             '<div class="main">' +
-              '<h3>' + escapeHtml(d.name || "Unknown") + ' <span class="status-pill ' + status + '">' + status.toUpperCase() + '</span></h3>' +
+              '<h3>' + escapeHtml(d.name && d.name !== "-" ? d.name : "Website visitor") + ' <span class="status-pill ' + status + '">' + status.toUpperCase() + '</span></h3>' +
               '<div class="meta">' +
-                '<span>\ud83d\udcde <a href="tel:+91' + escapeAttr(d.mobile || "") + '">' + escapeHtml(d.mobile || "-") + '</a></span>' +
+                (hasMobile ? '<span>\ud83d\udcde <a href="tel:+91' + escapeAttr(d.mobile) + '">' + escapeHtml(d.mobile) + '</a></span>' : '<span>\ud83d\udcde No number given</span>') +
                 '<span>\ud83d\udee0\ufe0f ' + escapeHtml(d.service || "-") + '</span>' +
                 '<span>\ud83d\udd52 ' + when + '</span>' +
+                (d.source === "whatsapp-button" ? '<span>\ud83d\udcac Clicked WhatsApp on ' + escapeHtml(d.page || "site") + '</span>' : "") +
               '</div>' +
               '<div class="msg-text">' + escapeHtml(d.message || "-") + '</div>' +
             '</div>' +
             '<div class="actions">' +
-              '<a class="btn-mini" target="_blank" href="https://wa.me/91' + escapeAttr(d.mobile || "") + '?text=' + waMsg + '">WhatsApp</a>' +
+              (hasMobile ? '<a class="btn-mini" target="_blank" href="https://wa.me/91' + escapeAttr(d.mobile) + '?text=' + waMsg + '">WhatsApp</a>' : "") +
               (status !== "contacted" ? '<button type="button" class="btn-mini set-status" data-status="contacted">Mark Contacted</button>' : "") +
               (status !== "done" ? '<button type="button" class="btn-mini set-status" data-status="done">Mark Done</button>' : "") +
               (status !== "new" ? '<button type="button" class="btn-mini set-status" data-status="new">Mark New</button>' : "") +

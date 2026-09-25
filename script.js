@@ -107,7 +107,27 @@ function wireWhatsappLinks() {
     el.setAttribute("href", "https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(msg));
     el.setAttribute("target", "_blank");
     el.setAttribute("rel", "noopener");
+    el.addEventListener("click", function () { logWhatsappClick(msg); });
   });
+}
+
+// Logs a lightweight record for every "WhatsApp Us" style button on the site
+// (header, hero, floating button, stock pages) — these don't collect a name
+// or mobile number like the Contact page form does, but the admin panel
+// should still show that someone reached out. Best effort: never blocks or
+// delays opening WhatsApp, even if saving fails.
+function logWhatsappClick(msg) {
+  if (typeof db === "undefined" || !db) return;
+  db.collection("inquiries").add({
+    name: "-",
+    mobile: "-",
+    service: "General (WhatsApp button)",
+    message: msg,
+    source: "whatsapp-button",
+    page: window.location.pathname,
+    status: "new",
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function (err) { console.error("Could not log WhatsApp click:", err); });
 }
 
 function wireCallButtons() {
