@@ -22,7 +22,7 @@ Follow these 6 steps once, before you upload the site.
 1. Left menu → **Build → Authentication → Get started**.
 2. Under the **Sign-in method** tab, click **Google**, toggle it **Enable**, pick a support email, **Save**.
 
-## Step 3 — Set your admin email (2 places)
+## Step 3 — Set your admin email (2 places, must match exactly)
 
 Open **`firebase-config.js`** and change this line to the exact Gmail address you (the owner) will sign in with:
 
@@ -30,15 +30,15 @@ Open **`firebase-config.js`** and change this line to the exact Gmail address yo
 var SUPER_ADMIN_EMAIL = "owner@gmail.com";
 ```
 
-Then open **`firestore.rules`** and change the matching line to the **same email, in lowercase**:
+Then open **`firestore.rules`** and change the matching line to the **same email** (letter case doesn't matter here, it's compared in lowercase automatically):
 
 ```js
-function isBootstrapSuperAdmin() {
-  return isSignedIn() && request.auth.token.email == "owner@gmail.com";
+function isSuperAdmin() {
+  return isSignedIn() && request.auth.token.email.lower() == "owner@gmail.com";
 }
 ```
 
-> This is the account that becomes admin automatically the first time it signs in. After that first login, you add/remove every other admin directly from the Admin Panel's "Admin Users" tab — you will never need to edit these files again.
+> This account always has full admin access, straight from the security rule itself — it never depends on a database record existing, so this account can never get locked out. Every other admin you add later (from the "Admin Users" tab) is checked against the database instead.
 
 ## Step 4 — Publish the security rules
 
@@ -73,3 +73,15 @@ These rules make sure: anyone can submit the contact form, but only your approve
 - `admin-login.html` and `admin.html` are excluded from search engines (`robots.txt` and `noindex`), but they are not secret URLs — the real protection is the Google Sign-In + admin allowlist, enforced both in the page and in the database rules.
 - If someone who is *not* on your admin list tries to sign in, they see "not authorized" and are signed out immediately — they never see any data.
 - Firestore's free tier (50,000 reads / 20,000 writes per day) is far more than a small business site like this will ever use.
+
+---
+
+## Troubleshooting: "Missing or insufficient permissions"
+
+If the dashboard signs you in but shows **"Could not load..."** or **"Could not add admin: Missing or insufficient permissions"**, the security rules published in Firebase Console don't yet match this project's `firestore.rules`. Fix it like this:
+
+1. Open **`firestore.rules`** in this project and confirm the email inside `isSuperAdmin()` is your exact Gmail address (Step 3 above).
+2. Go to **Firebase Console → Firestore Database → Rules**, select **all** the existing text and delete it, then paste in the **entire** contents of `firestore.rules` fresh (don't merge/edit the old rules — replace them completely).
+3. Click **Publish**, and wait ~10-30 seconds for it to take effect.
+4. In your browser, sign out of the admin panel and sign back in (or do a hard refresh with Ctrl+Shift+R) so a fresh login token is used.
+5. Still stuck? In Firebase Console → Firestore Database → **Data** tab, open the `admins` collection and confirm there is a document whose **ID** is your email address exactly (e.g. `yourname@gmail.com`) — not a random ID, and not the email typed with different spacing/case. If it's missing or wrong, delete it and sign out/in again so the app recreates it, or add it back manually with your email as the Document ID.

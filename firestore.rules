@@ -6,16 +6,23 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // True once the signed-in user's email exists as a document in /admins.
-    function isAdmin() {
-      return isSignedIn() &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
+    // ⚠️ Set this to the SAME email as SUPER_ADMIN_EMAIL in firebase-config.js
+    // (any letter case is fine — it is compared in lowercase below).
+    // This account ALWAYS has full admin access directly from this rule —
+    // it does not depend on any document existing in the database, so this
+    // account can never get accidentally locked out.
+    function isSuperAdmin() {
+      return isSignedIn() && request.auth.token.email.lower() == "owner@gmail.com";
     }
 
-    // ⚠️ Must exactly match SUPER_ADMIN_EMAIL in firebase-config.js (lowercase).
-    // This only matters for the very first login, to create the first admin record.
-    function isBootstrapSuperAdmin() {
-      return isSignedIn() && request.auth.token.email == "owner@gmail.com";
+    // True for the super admin above, OR for any email that has a document
+    // in /admins (added there by an existing admin, or created automatically
+    // for the super admin on first login). Always compared in lowercase so a
+    // Google account's exact letter-case never causes a mismatch.
+    function isAdmin() {
+      return isSuperAdmin() ||
+        (isSignedIn() &&
+          exists(/databases/$(database)/documents/admins/$(request.auth.token.email.lower())));
     }
 
     // ---- Enquiries (from the Contact page form) ----
@@ -27,19 +34,15 @@ service cloud.firestore {
     }
 
     // ---- Admins list ----
-    // Only admins can read/manage the list, except the very first bootstrap
-    // login, which is allowed to create its own record.
+    // Only admins can read, add or remove admin users.
     match /admins/{email} {
-      allow read: if isAdmin();
-      allow create: if isAdmin() || (isBootstrapSuperAdmin() && email == request.auth.token.email);
-      allow update, delete: if isAdmin();
+      allow read, create, update, delete: if isAdmin();
     }
 
     // ---- Admin login history ----
     // An admin may only write their own login record; only admins can read the log.
     match /adminLogins/{logId} {
-      allow create: if isAdmin() && request.resource.data.email == request.auth.token.email
-                     || (isBootstrapSuperAdmin() && request.resource.data.email == request.auth.token.email);
+      allow create: if isAdmin() && request.resource.data.email == request.auth.token.email.lower();
       allow read: if isAdmin();
       allow update, delete: if false;
     }

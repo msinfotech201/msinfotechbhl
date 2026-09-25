@@ -29,10 +29,10 @@ var firebaseConfig = {
    an admin. After that, you manage all other admins from inside the
    Admin Panel itself — you never need to edit this file again.
 
-   You must set the SAME email in Firestore rules — see
-   ADMIN-SETUP.md, step 4, for the exact line to change.
+   You must set the SAME email (any letter case is fine) in Firestore rules —
+   see ADMIN-SETUP.md, step 3, for the exact line to change.
    --------------------------------------------------------- */
-var SUPER_ADMIN_EMAIL = "owner@gmail.com";
+var SUPER_ADMIN_EMAIL = "msinfotechbhl@gmail.com";
 
 firebase.initializeApp(firebaseConfig);
 
