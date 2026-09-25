@@ -32,7 +32,7 @@ var firebaseConfig = {
    You must set the SAME email in Firestore rules — see
    ADMIN-SETUP.md, step 4, for the exact line to change.
    --------------------------------------------------------- */
-var SUPER_ADMIN_EMAIL = "msinfotech.bhilwara@gmail.com";
+var SUPER_ADMIN_EMAIL = "owner@gmail.com";
 
 firebase.initializeApp(firebaseConfig);
 
